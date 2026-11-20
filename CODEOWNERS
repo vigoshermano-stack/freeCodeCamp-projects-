@@ -1,0 +1,14 @@
+# Default fallback for all drafts, articles, and sample code
+*                       @your-github-username @code-reviewer-1
+
+# DEV.to tutorials and community drafts
+/articles/devto/        @devto-reviewer @code-reviewer-1
+
+# SitePoint technical articles and editorial reviews
+/articles/sitepoint/    @sitepoint-editor
+
+# Code snippets, scripts, and demo apps accompanying articles
+/samples/               @code-reviewer-1
+*.py                    @code-reviewer-1
+*.js                    @code-reviewer-1
+*.ts                    @code-reviewer-1
