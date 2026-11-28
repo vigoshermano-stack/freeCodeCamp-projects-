@@ -1,0 +1,16 @@
+name = "webhook-edge-buffer"
+main = "worker.js"
+compatibility_date = "2024-11-01"
+
+# KV namespace used as the durable edge buffer.
+# Create with: wrangler kv:namespace create BUFFER
+[[kv_namespaces]]
+binding = "BUFFER"
+id = "<your-kv-namespace-id>"
+
+# Re-drive buffered events every 5 minutes.
+[triggers]
+crons = ["*/5 * * * *"]
+
+# Set the origin once: wrangler secret put ORIGIN_URL
+# value example: https://relay.techapplied.it.com

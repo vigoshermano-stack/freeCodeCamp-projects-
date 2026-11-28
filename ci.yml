@@ -1,0 +1,65 @@
+# GitHub Actions for webhook-relay-queue
+#
+# Method A - GitHub Flow. `main` is the only long-lived branch and it is always
+# deployable, so every change arrives as a squashed PR whose title becomes the
+# commit subject. The job names below are exactly the required status checks
+# listed in docs/branch-protection.md - rename a job and you must update that
+# file, or the branch protection will wait forever for a check that never
+# reports.
+#
+# Same commands as .circleci/config.yml. Both call scripts/ so the rules have a
+# single home.
+
+name: CI
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+# A force-push to a PR branch starts a new run; the old one has nothing left to
+# prove. Cancelling it is what keeps a rebased branch fast under GitHub Flow.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # The squash commit on main is titled by this PR title. Checking it here is
+  # the only moment the author can still fix it with one click.
+  pr-title:
+    name: pr-title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: sh scripts/check-pr-title.sh
+
+  structure-guard:
+    name: structure-guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the src/ and tests/ contract
+        run: sh scripts/structure-guard.sh
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pytest
+      - name: Run the suite
+        run: python -m pytest tests/ -v
